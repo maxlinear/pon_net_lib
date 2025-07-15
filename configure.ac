@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_REVISION($Revision: 0.1 $)
 
-AC_INIT([PON_NET_LIB],[1.22.2],[],[pon_net_lib])
+AC_INIT([PON_NET_LIB],[2.1.0],[],[pon_net_lib])
 AC_CONFIG_SRCDIR(src/Makefile.am)
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])

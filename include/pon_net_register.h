@@ -35,9 +35,11 @@
 /**
  *	Register lower layer functions in higher layer module.
  *
- *	\param[in] hl_handle Pointer to higher layer module.
+ *	\param[in] hl_handle_legacy Pointer must be set to NULL.
  *	\param[out] pa_ops Pointer to lower layer operations structure.
  *	\param[out] ll_handle Pointer to lower layer module.
+ *	\param[in] hl_handle Pointer to higher layer module.
+ *	\param[in] if_version PON-Adapter IF version used by calling function
  *
  *	\remarks The function returns an error code in case of error.
  *	The error code is described in \ref pon_adapter_errno.
@@ -46,9 +48,11 @@
  *	- PON_ADAPTER_SUCCESS: If successful
  *	- Other: An error code in case of error.
  */
-enum pon_adapter_errno libponnet_ll_register_ops(void *hl_handle,
-					const struct pa_ops **pa_ops,
-					void **ll_handle);
+enum pon_adapter_errno libponnet_ll_register_ops(void *hl_handle_legacy,
+						 const struct pa_ops **pa_ops,
+						 void **ll_handle,
+						 void *hl_handle,
+						 uint32_t if_version);
 
 /** @} */ /* PON_NET_LIB */
 

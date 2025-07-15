@@ -809,15 +809,30 @@ static const struct pa_ops pon_net_pa_ops = {
 	.sys_cap_ops = &pon_net_sys_cap_ops,
 };
 
-enum pon_adapter_errno libponnet_ll_register_ops(void *hl_handle,
-				     const struct pa_ops **pa_ops,
-				     void **ll_handle)
+enum pon_adapter_errno libponnet_ll_register_ops(void *hl_handle_legacy,
+						 const struct pa_ops **pa_ops,
+						 void **ll_handle,
+						 void *hl_handle,
+						 uint32_t if_version)
 {
-	dbg_in_args("%p, %p, %p", hl_handle, pa_ops, ll_handle);
-	*pa_ops = &pon_net_pa_ops;
-	g_pon_net_context.hl_handle = hl_handle;
-	*ll_handle = &g_pon_net_context;
+	enum pon_adapter_errno ret = PON_ADAPTER_ERROR;
 
-	dbg_out_ret("%d", PON_ADAPTER_SUCCESS);
-	return PON_ADAPTER_SUCCESS;
+	dbg_in_args("%p, %p, %p, %p, %d",
+		    hl_handle_legacy, pa_ops, ll_handle, hl_handle, if_version);
+
+	/* In legacy mode, set the new arguments to compatible values. */
+	if (hl_handle_legacy) {
+		hl_handle = hl_handle_legacy;
+		if_version = PA_IF_1ST_VER_NUMBER;
+	}
+
+	if (PA_IF_VERSION_CHECK_COMPATIBLE(if_version)) {
+		g_pon_net_context.hl_handle = hl_handle;
+		*pa_ops = &pon_net_pa_ops;
+		*ll_handle = &g_pon_net_context;
+		ret = PON_ADAPTER_SUCCESS;
+	}
+
+	dbg_out_ret("%d", ret);
+	return ret;
 }

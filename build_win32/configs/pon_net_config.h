@@ -14,7 +14,7 @@
 #define PACKAGE_NAME "PON_NET_LIB"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PON_NET_LIB 1.22.2"
+#define PACKAGE_STRING "PON_NET_LIB 2.1.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "pon_net_lib"
@@ -23,9 +23,9 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.22.2"
+#define PACKAGE_VERSION "2.1.0"
 
 /* Version number of package */
-#define VERSION "1.22.2"
+#define VERSION "2.1.0"
 
 #endif

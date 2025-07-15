@@ -63,7 +63,10 @@ static const struct ethernet_port_cfg {
 			LINK_MODE_MASK0(Asym_Pause),
 			LINK_MODE_MASK1(1000baseX_Full) |
 			LINK_MODE_MASK1(2500baseT_Full) |
-			LINK_MODE_MASK1(5000baseT_Full)
+			LINK_MODE_MASK1(5000baseT_Full) |
+			LINK_MODE_MASK1(10000baseCR_Full) |
+			LINK_MODE_MASK1(10000baseSR_Full) |
+			LINK_MODE_MASK1(10000baseLR_Full)
 		}
 	},
 	{
@@ -112,7 +115,9 @@ static const struct ethernet_port_cfg {
 			LINK_MODE_MASK0(Autoneg) |
 			LINK_MODE_MASK0(Pause) |
 			LINK_MODE_MASK0(Asym_Pause),
-			0
+			LINK_MODE_MASK1(10000baseCR_Full) |
+			LINK_MODE_MASK1(10000baseSR_Full) |
+			LINK_MODE_MASK1(10000baseLR_Full)
 		}
 	},
 	{
@@ -182,12 +187,15 @@ static const struct ethernet_port_cfg {
 			LINK_MODE_MASK0(Asym_Pause),
 			LINK_MODE_MASK1(1000baseX_Full) |
 			LINK_MODE_MASK1(2500baseT_Full) |
-			LINK_MODE_MASK1(5000baseT_Full)
+			LINK_MODE_MASK1(5000baseT_Full) |
+			LINK_MODE_MASK1(10000baseCR_Full) |
+			LINK_MODE_MASK1(10000baseSR_Full) |
+			LINK_MODE_MASK1(10000baseLR_Full)
 		}
 	},
 	{
 		.value = PA_PPTPETHUNI_DETECT_10_AUTO,
-		.speed = SPEED_UNKNOWN,
+		.speed = SPEED_10,
 		.duplex = DUPLEX_UNKNOWN,
 		.advertising = {
 			LINK_MODE_MASK0(10baseT_Full) |
@@ -300,10 +308,11 @@ apply_ethernet_port_cfg(struct pon_net_context *ctx,
 			const char *ifname,
 			const struct ethernet_port_cfg *cfg)
 {
-	enum pon_adapter_errno ret = PON_ADAPTER_SUCCESS;
+	enum pon_adapter_errno ret;
 	struct pon_ethtool_link_settings link_settings = { 0 };
 	uint32_t *advertising;
 	int i, mode_masks_nwords;
+	bool changed = false;
 
 	dbg_in_args("%p, \"%s\", %p", ctx, ifname, cfg);
 
@@ -333,20 +342,27 @@ apply_ethernet_port_cfg(struct pon_net_context *ctx,
 		return PON_ADAPTER_ERROR;
 	}
 
-	if (cfg->speed != SPEED_UNKNOWN)
+	if (cfg->speed != SPEED_UNKNOWN &&
+	    link_settings.req.speed != (unsigned int)cfg->speed) {
 		link_settings.req.speed = (unsigned int)cfg->speed;
-	if (cfg->duplex != DUPLEX_UNKNOWN)
+		changed = true;
+	}
+	if (cfg->duplex != DUPLEX_UNKNOWN &&
+	    link_settings.req.duplex != cfg->duplex) {
 		link_settings.req.duplex = cfg->duplex;
+		changed = true;
+	}
 
 	ret = pon_net_ethtool(ctx, ifname, ETHTOOL_SLINKSETTINGS,
 			      &link_settings);
-	if (ret != PON_ADAPTER_SUCCESS) {
+	if (ret != PON_ADAPTER_SUCCESS && changed) {
+		/* only error if speed/duplex cannot be changed */
 		dbg_wrn_fn_ret(ETHTOOL_SLINKSETTINGS, ret);
 		return PON_ADAPTER_ERROR;
 	}
 
-	dbg_out_ret("%d", ret);
-	return ret;
+	dbg_out_ret("%d", PON_ADAPTER_SUCCESS);
+	return PON_ADAPTER_SUCCESS;
 }
 
 static enum pon_adapter_errno
@@ -569,7 +585,9 @@ static enum pa_pptp_eth_uni_expected_type interpret_type(uint32_t *supported)
 	static const uint32_t modes_10g[ETHTOOL_LINK_MODE_NUM_U32] = {
 		LINK_MODE_MASK0(10000baseT_Full) |
 		LINK_MODE_MASK0(10000baseKR_Full),
-		0};
+		LINK_MODE_MASK1(10000baseCR_Full) |
+		LINK_MODE_MASK1(10000baseSR_Full) |
+		LINK_MODE_MASK1(10000baseLR_Full)};
 	static const uint32_t modes_2_5g[ETHTOOL_LINK_MODE_NUM_U32] = {
 		LINK_MODE_MASK0(2500baseX_Full),
 		LINK_MODE_MASK1(2500baseT_Full)};

@@ -1,5 +1,21 @@
 NEXT VERSION
 
+v2.1.0 2025.04.29
+
+- PONRTSYS-14628: Add PA IF version check
+  + Add a check for the version of the PON adapter interface and return an error
+    if the version of the higher layer module is not supported anymore.
+
+v2.0.0 2024.08.20
+
+- PONRTSYS-13866: Support SFP Ethernet ports on LAB Board
+  + Add more ethtool link modes as possible configs for 10G Ethernet, as they
+    might be reported by the kernels SFP support or the fixed-link definitions.
+  + The fixed-link option for an ethernet port does not allow to change the
+    settings for speed and duplex. So if the these settings are not changing or
+    not part of the config to be applied, do not report an error.
+- PONRTSYS-14347: License change from MxL to BSD (2-clause)
+
 v1.22.2 2024.05.07
 
 - PONRTSYS-13838: pptp uni, reserve more prefs for queue assignment
