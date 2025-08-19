@@ -2207,9 +2207,9 @@ void netlink_vlan_defaults(struct netlink_vlan_data *data)
 	data->vlan_id = NETLINK_FILTER_UNUSED;
 	data->vlan_prio = NETLINK_FILTER_UNUSED;
 	data->vlan_proto = NETLINK_FILTER_UNUSED;
-	data->cvlan_id = NETLINK_FILTER_UNUSED;
-	data->cvlan_prio = NETLINK_FILTER_UNUSED;
-	data->cvlan_eth_type = NETLINK_FILTER_UNUSED;
+	data->svlan_id = NETLINK_FILTER_UNUSED;
+	data->svlan_prio = NETLINK_FILTER_UNUSED;
+	data->svlan_eth_type = NETLINK_FILTER_UNUSED;
 	data->act_vlan = NETLINK_FILTER_ACT_VLAN_PUSH;
 }
 
@@ -3184,6 +3184,33 @@ action_vlan_add_complex(struct rtnl_cls *cls,
 
 		vlan_tmp.act_vlan = NETLINK_FILTER_ACT_VLAN_MODIFY;
 		ret = action_vlan_add_complex(cls, &vlan_tmp);
+		if (ret) {
+			dbg_out_ret("%d", ret);
+			return ret;
+		}
+
+		dbg_out_ret("%d", ret);
+		return ret;
+	}
+
+	if (vlan->act_vlan == NETLINK_FILTER_ACT_VLAN_MODIFY_AND_PUSH) {
+		/* PON_AND_MODIFY - as the name suggests is implemented as
+		   2 actions - POP followed by modify */
+		struct netlink_vlan_data vlan_tmp = *vlan;
+
+		vlan_tmp.act_vlan = NETLINK_FILTER_ACT_VLAN_MODIFY;
+		ret = action_vlan_add(cls, &vlan_tmp);
+		if (ret) {
+			dbg_out_ret("%d", ret);
+			return ret;
+		}
+
+		vlan_tmp.act_vlan = NETLINK_FILTER_ACT_VLAN_PUSH;
+		vlan_tmp.vlan_id = vlan_tmp.svlan_id;
+		vlan_tmp.vlan_prio = vlan_tmp.svlan_prio;
+		vlan_tmp.vlan_proto = vlan_tmp.svlan_eth_type;
+
+		ret = action_vlan_add(cls, &vlan_tmp);
 		if (ret) {
 			dbg_out_ret("%d", ret);
 			return ret;

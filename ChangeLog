@@ -1,7 +1,15 @@
 NEXT VERSION
 
+v2.2.0 2025.07.03
+
+- PONRTSYS-14712: Resolved issues with OMCI rules definitions in the OMCI rules list
+  + Fix matching algorithm when handling the outer VLAN treatment
+- PONRTSYS-14858: Report unavailable netifd only once (ip host/lct)
+
 v2.1.0 2025.04.29
 
+- PONRTSYS-14713: add three additional evlan rules with double push.
+  + Add three additional rules for handling double tag frames.
 - PONRTSYS-14628: Add PA IF version check
   + Add a check for the version of the PON adapter interface and return an error
     if the version of the higher layer module is not supported anymore.

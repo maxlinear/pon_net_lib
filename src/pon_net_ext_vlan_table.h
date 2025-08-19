@@ -176,10 +176,17 @@ struct filter_template {
 	int act_vlan_prio;
 	/** VLAN Protocol action */
 	int act_vlan_proto;
+	int act_svlan_id;
+	/** VLAN Priority action */
+	int act_svlan_prio;
+	/** VLAN Protocol action */
+	int act_svlan_proto;
 	/** IPv4 type of service */
 	int ip_tos;
 	/** Unused */
 	int unused;
+	/** Custom ops */
+	int custom_ops;
 };
 
 /** VLAN rule number */
@@ -367,7 +374,7 @@ static const struct omci_rules omci_rules[] = {
 	} },
 	{{1, 10, 0,
 	"Drop all single-tagged with S-tag and VIDs",
-		{15, 4096, 0, 8, VIDs, m_0_4_5_6_7, m_0_4, 3, 15, 4096, 0, 15,
+		{15, 4096, 0, 8, VIDc, m_0_4_5_6_7, m_0_4, 3, 15, 4096, 0, 15,
 		4096, 0},
 	},
 	{1, 10, 0,
@@ -631,6 +638,24 @@ static const struct omci_rules omci_rules[] = {
 	"If double-tagged with outer VIDx, remove outer tag",
 		{14, VIDx, 0, 14, 4096, 0, 0, 1, 15, NA, 0, 15, NA, 0},
 	} },
+	{{1, 39, 0,
+	"Change priority to Px if tagged and Insert one full tag, copy prio",
+		{15, 4096, 0, 8, 4096, m_0_4_5_6_7, m_0_4, 1, 8, VIDy,
+		m_0_2_4_6_7, m_0_7, 4096, m_0_2_4_6_7},
+	},
+	{1, 39, 0,
+	"If double-tagged with outer VIDy any outer priority, remove outer and copy prio to inner",
+		{8, VIDy, 0, Px, 4096, 0, m_0_4, 2, 15, NA, 0, 8, 4096, 0},
+	} },
+	{{1, 40, 0,
+	"Change tag to VIDx if tag is C and Insert one full tag, copy prio",
+		{15, 4096, 0, 8, VIDc, m_0_4_5_6_7, m_0_4, 1, 8, VIDy,
+		m_0_2_4_6_7, 8, VIDx, m_0_2_4_6_7},
+	},
+	{1, 40, 0,
+	"If double-tagged with outer VIDy any outer priority, remove outer and copy prio to inner",
+		{8, VIDy, 0, 8, 4096, 0, m_0_4, 2, 15, NA, 0, 8, 4096, 0},
+	} },
 	{{2, 1, 1,
 	"Do nothing (default flow)",
 		{14, 4096, m_0_4_5_6_7, 14, 4096, m_0_4_5_6_7, 0, 0, 15, NA,
@@ -821,7 +846,7 @@ static const struct omci_rules omci_rules[] = {
 	},
 	{2, 21, 0,
 	"If double-tagged, swap both tags back.",
-		{8, VIDc, 0, 8, VIDs, 0, m_0_4, 2, 8, 4096, 0, 9, 4097, 0},
+		{8, VIDs, 0, 8, VIDc, 0, m_0_4, 2, 8, 4096, 0, 9, 4097, 0},
 	} },
 	{{2, 22, 0,
 	"Remove the outer tag, if tags are S and C..",
@@ -844,7 +869,7 @@ static const struct omci_rules omci_rules[] = {
 	{{2, 24, 0,
 	"Remove the inner tag, if tags are S and C. Retain the priority of the outer tag.",
 		{8, VIDs, m_0_4_5_6_7, 8, VIDc, m_0_4_5_6_7, m_0_4, 2, 15, NA,
-		NA, 9, VIDs, m_0_7},
+		NA, 9, VIDx, m_0_7},
 	},
 	{2, 24, 0,
 	"If single-tagged with S, add an inner tag C. Use the priority of S for both.",
@@ -1508,6 +1533,41 @@ static struct rule {
 		}
 	},
 	{
+		.rule_number = {1, 28},
+		.upstream = {
+			.inner_vlan_enable = 1,
+			.inner_vlan_id = fiv,
+			.inner_vlan_prio = NETLINK_FILTER_UNUSED,
+			.inner_vlan_proto = fit,
+			.proto = 0,
+			.act = NETLINK_FILTER_ACT_VLAN,
+			.act_vlan = NETLINK_FILTER_ACT_VLAN_MODIFY_AND_PUSH,
+			.act_vlan_id = tiv,
+			.act_vlan_prio = tip,
+			.act_vlan_proto = tit,
+			.act_svlan_id = tov,
+			.act_svlan_prio = top,
+			.act_svlan_proto = tot,
+			.custom_ops = 1,
+		},
+		.downstream = {
+			.outer_vlan_enable = 1,
+			.outer_vlan_id = tov,
+			.outer_vlan_prio = top,
+			.outer_vlan_proto = tot,
+			.inner_vlan_enable = 1,
+			.inner_vlan_id = tiv,
+			.inner_vlan_prio = tip,
+			.inner_vlan_proto = tit,
+			.proto = 0,
+			.act = NETLINK_FILTER_ACT_VLAN,
+			.act_vlan = NETLINK_FILTER_ACT_VLAN_POP_AND_MODIFY,
+			.act_vlan_id = fiv,
+			.act_vlan_prio = PRIO_COPY_OUTER,
+			.act_vlan_proto = fit,
+		}
+	},
+	{
 		.rule_number = {1, 30},
 		.upstream = {
 			.inner_vlan_enable = 1,
@@ -1694,6 +1754,76 @@ static struct rule {
 			.proto = fe,
 			.act = NETLINK_FILTER_ACT_VLAN,
 			.act_vlan = NETLINK_FILTER_ACT_VLAN_POP,
+		}
+	},
+	{
+		.rule_number = {1, 39},
+		.upstream = {
+			.inner_vlan_enable = 1,
+			.inner_vlan_id = NETLINK_FILTER_UNUSED,
+			.inner_vlan_prio = fip,
+			.inner_vlan_proto = fit,
+			.proto = 0,
+			.act = NETLINK_FILTER_ACT_VLAN,
+			.act_vlan = NETLINK_FILTER_ACT_VLAN_MODIFY_AND_PUSH,
+			.act_vlan_id = NETLINK_FILTER_UNUSED,
+			.act_vlan_prio = tip,
+			.act_vlan_proto = tit,
+			.act_svlan_id = tov,
+			.act_svlan_prio = PRIO_COPY_INNER,
+			.act_svlan_proto = tot,
+			.custom_ops = 1,
+		},
+		.downstream = {
+			.outer_vlan_enable = 1,
+			.outer_vlan_id = tov,
+			.outer_vlan_prio = top,
+			.outer_vlan_proto = tot,
+			.inner_vlan_enable = 1,
+			.inner_vlan_id = NETLINK_FILTER_UNUSED,
+			.inner_vlan_prio = NETLINK_FILTER_UNUSED,
+			.inner_vlan_proto = tit,
+			.proto = 0,
+			.act = NETLINK_FILTER_ACT_VLAN,
+			.act_vlan = NETLINK_FILTER_ACT_VLAN_POP_AND_MODIFY,
+			.act_vlan_id = NETLINK_FILTER_UNUSED,
+			.act_vlan_prio = PRIO_COPY_OUTER,
+			.act_vlan_proto = tit,
+		}
+	},
+	{
+		.rule_number = {1, 40},
+		.upstream = {
+			.inner_vlan_enable = 1,
+			.inner_vlan_id = fiv,
+			.inner_vlan_prio = NETLINK_FILTER_UNUSED,
+			.inner_vlan_proto = fit,
+			.proto = 0,
+			.act = NETLINK_FILTER_ACT_VLAN,
+			.act_vlan = NETLINK_FILTER_ACT_VLAN_MODIFY_AND_PUSH,
+			.act_vlan_id = tiv,
+			.act_vlan_prio = tip,
+			.act_vlan_proto = tit,
+			.act_svlan_id = tov,
+			.act_svlan_prio = PRIO_COPY_INNER,
+			.act_svlan_proto = tot,
+			.custom_ops = 1,
+		},
+		.downstream = {
+			.outer_vlan_enable = 1,
+			.outer_vlan_id = tov,
+			.outer_vlan_prio = top,
+			.outer_vlan_proto = tot,
+			.inner_vlan_enable = 1,
+			.inner_vlan_id = NETLINK_FILTER_UNUSED,
+			.inner_vlan_prio = NETLINK_FILTER_UNUSED,
+			.inner_vlan_proto = tit,
+			.proto = 0,
+			.act = NETLINK_FILTER_ACT_VLAN,
+			.act_vlan = NETLINK_FILTER_ACT_VLAN_POP_AND_MODIFY,
+			.act_vlan_id = NETLINK_FILTER_UNUSED,
+			.act_vlan_prio = PRIO_COPY_OUTER,
+			.act_vlan_proto = tit,
 		}
 	},
 	{

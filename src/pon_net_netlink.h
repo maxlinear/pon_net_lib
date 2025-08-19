@@ -70,7 +70,9 @@ enum netlink_filter_act_vlan {
 	/** Modify a VLAN tag action */
 	NETLINK_FILTER_ACT_VLAN_MODIFY,
 	/** Pop a tag and then modify */
-	NETLINK_FILTER_ACT_VLAN_POP_AND_MODIFY
+	NETLINK_FILTER_ACT_VLAN_POP_AND_MODIFY,
+	/** Modify and push */
+	NETLINK_FILTER_ACT_VLAN_MODIFY_AND_PUSH,
 };
 
 /* Cookie used for Ext. Vlan */
@@ -128,11 +130,11 @@ struct netlink_vlan_data {
 	/** VLAN Protocol (TPID) */
 	int vlan_proto;
 	/** Second VLAN ID. This is intended for QinQ */
-	int cvlan_id;
+	int svlan_id;
 	/** Second VLAN Priority (PCP). This is intended for QinQ */
-	int cvlan_prio;
+	int svlan_prio;
 	/** Second VLAN Ethernet Type. This is intended for QinQ */
-	int cvlan_eth_type;
+	int svlan_eth_type;
 	/** Action to be performed */
 	enum netlink_filter_act_vlan act_vlan;
 	/** Action cookie */

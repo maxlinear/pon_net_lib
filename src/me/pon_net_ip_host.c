@@ -23,6 +23,11 @@
 #include <ctype.h>
 #include <stdio.h>
 
+#if defined(WIN32)
+#include <WinSock2.h>
+#include <ws2tcpip.h>
+#endif
+
 #include <netlink/route/act/mirred.h>
 
 #include <pon_adapter.h>
@@ -47,7 +52,6 @@
 #include <sys/socket.h>
 #include <netinet/icmp6.h>
 #endif
-
 
 /**
  * List of fields in struct pon_net_ip_host, which hold allocated handles
@@ -466,7 +470,6 @@ static enum pon_adapter_errno ip_host_destroy(void *ll_handle, uint16_t me_id)
 	return PON_ADAPTER_SUCCESS;
 }
 
-#if !defined(PON_NET_LIB_SIMULATOR)
 /* (IF_NAMESIZE - 1) "(" may not be accepted in format strings */
 # define IFN_CHARS 15
 
@@ -549,8 +552,6 @@ uci_set_ipv6(struct pon_net_context *ctx, const char *sec, const char *opt,
 	dbg_out_ret("%d", ret);
 	return ret;
 }
-
-#endif /* !defined(PON_NET_LIB_SIMULATOR) */
 
 static enum pon_adapter_errno
 ip_host_mac_address_parse(const char *macaddr_buf, uint8_t mac[ETH_ALEN])
@@ -640,13 +641,12 @@ ip_host_mac_address_get(void *ll_handle, uint16_t me_id,
 	return PON_ADAPTER_SUCCESS;
 }
 
-#if !defined(PON_NET_LIB_SIMULATOR)
 static enum pon_adapter_errno
-ip_host_platform_update(void *ll_handle, struct pon_net_ip_host *ip_host,
+ip_host_platform_update(void *ll_handle, const struct pon_net_ip_host *ip_host,
 			const struct pa_ip_host_update_data *update_data)
 {
 	struct pon_net_context *ctx = ll_handle;
-	char *cfg_name = ip_host->cfg_name;
+	const char *cfg_name = ip_host->cfg_name;
 	const char *proto, *method;
 	char *path;
 	enum pon_adapter_errno err;
@@ -741,8 +741,6 @@ ip_host_platform_update(void *ll_handle, struct pon_net_ip_host *ip_host,
 	return PON_ADAPTER_SUCCESS;
 }
 
-#endif
-
 static enum pon_adapter_errno
 ip_host_update(void *ll_handle, uint16_t me_id,
 	       const struct pa_ip_host_update_data *update_data)
@@ -761,13 +759,13 @@ ip_host_update(void *ll_handle, uint16_t me_id,
 		return error;
 	}
 
-#if !defined(PON_NET_LIB_SIMULATOR)
-	error = ip_host_platform_update(ctx, &ip_host, update_data);
-	if (error != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(error, ip_host_platform_update, error);
-		return error;
+	if (ctx->netifd_running) {
+		error = ip_host_platform_update(ctx, &ip_host, update_data);
+		if (error != PON_ADAPTER_SUCCESS) {
+			FN_ERR_RET(error, ip_host_platform_update, error);
+			return error;
+		}
 	}
-#endif
 
 	if (update_data->ip_options > 1)
 		ip_host.is_up = true;
@@ -800,7 +798,6 @@ ip_host_update(void *ll_handle, uint16_t me_id,
 	return PON_ADAPTER_SUCCESS;
 }
 
-#if !defined(PON_NET_LIB_SIMULATOR)
 static enum pon_adapter_errno
 ip_host_update_v6(void *ll_handle, uint16_t me_id,
 		  const struct pa_ipv6_host_update_data *update_data)
@@ -821,6 +818,7 @@ ip_host_update_v6(void *ll_handle, uint16_t me_id,
 	return PON_ADAPTER_ERR_NOT_SUPPORTED;
 }
 
+#if !defined(PON_NET_LIB_SIMULATOR)
 static enum pon_adapter_errno
 ip_host_current_address_get(void *ll_handle, uint16_t me_id,
 			    struct pa_ip_host_address *address)
@@ -1122,6 +1120,7 @@ const struct pa_ip_host_ops ip_host_ops = {
 const struct pa_ip_host_ops ip_host_ops = {
 	.create = ip_host_create,
 	.update = ip_host_update,
+	.update_v6 = ip_host_update_v6,
 	.destroy = ip_host_destroy,
 	.mac_address_get = ip_host_mac_address_get,
 };

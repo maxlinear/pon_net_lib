@@ -325,7 +325,11 @@ filter_template_to_netlink_filter_defs(const struct filter_template *def,
 		vlan_data->vlan_prio = p->act_vlan_prio;
 		vlan_data->vlan_proto = p->act_vlan_proto;
 		vlan_data->act_vlan = p->act_vlan;
-
+		if (p->act_vlan == NETLINK_FILTER_ACT_VLAN_MODIFY_AND_PUSH) {
+			vlan_data->svlan_id = p->act_svlan_id;
+			vlan_data->svlan_prio = p->act_svlan_prio;
+			vlan_data->svlan_eth_type = p->act_svlan_proto;
+		}
 		filter->act_data = vlan_data;
 	}
 
@@ -690,6 +694,35 @@ act_vlan_proto_expand(struct filter_template *def, void *arg)
 		break;
 	}
 
+	ethtype = find_ethertype_for_treatment_field(def->act_svlan_proto,
+						     expand_args->filter);
+	switch (ethtype->ethertypes[0]) {
+	case ETH_INPUT_TPID:
+		def->act_svlan_proto = expand_args->input_tpid;
+		break;
+	case ETH_OUTPUT_TPID:
+		def->act_svlan_proto = expand_args->output_tpid;
+		break;
+	case ETH_COPY_INNER:
+		if (def->act_svlan_proto == fot) {
+			def->act_svlan_proto = def->outer_vlan_proto;
+			break;
+		}
+		def->act_svlan_proto = def->inner_vlan_proto;
+		break;
+	case ETH_COPY_OUTER:
+		if (def->act_svlan_proto == fit) {
+			def->act_svlan_proto = def->inner_vlan_proto;
+			break;
+		}
+
+		def->act_svlan_proto = def->outer_vlan_proto;
+		break;
+	default:
+		def->act_svlan_proto = ethtype->ethertypes[0];
+		break;
+	}
+
 	/* Sometimes def->act_vlan_proto can be 0.
 	 * For example if it resolved to ETH_COPY_INNER or
 	 * ETH_COPY_OUTER and def->inner_vlan_proto or
@@ -698,6 +731,8 @@ act_vlan_proto_expand(struct filter_template *def, void *arg)
 	 * fix this case */
 	if (!def->act_vlan_proto)
 		def->act_vlan_proto = default_act_tpid_get(expand_args);
+	if (!def->act_svlan_proto)
+		def->act_svlan_proto = default_act_tpid_get(expand_args);
 
 	dbg_out_ret("%d", PON_ADAPTER_SUCCESS);
 	return PON_ADAPTER_SUCCESS;
@@ -717,6 +752,7 @@ priority_expand(struct filter_template *def, void *arg)
 	def->outer_vlan_prio = map_val(expand_args->filter,
 				       def->outer_vlan_prio);
 	def->act_vlan_prio = map_val(expand_args->filter, def->act_vlan_prio);
+	def->act_svlan_prio = map_val(expand_args->filter, def->act_svlan_prio);
 
 	if (def->inner_vlan_prio == PRIO_ANY)
 		def->inner_vlan_prio = NETLINK_FILTER_UNUSED;
@@ -742,8 +778,9 @@ priority_expand(struct filter_template *def, void *arg)
 		return PON_ADAPTER_SUCCESS;
 	}
 
-	if (def->act_vlan_prio == PRIO_COPY_INNER &&
-	    def->inner_vlan_prio == NETLINK_FILTER_UNUSED) {
+	if ((def->act_vlan_prio == PRIO_COPY_INNER ||
+	     def->act_svlan_prio == PRIO_COPY_INNER) &&
+	     def->inner_vlan_prio == NETLINK_FILTER_UNUSED) {
 
 		ret = filter_template_multiplicate(def, PRIO_COUNT);
 		if (ret != PON_ADAPTER_SUCCESS) {
@@ -753,6 +790,10 @@ priority_expand(struct filter_template *def, void *arg)
 
 		for (i = 0; i < PRIO_COUNT; ++i) {
 			def->inner_vlan_prio = i;
+			if (def->act_vlan_prio == PRIO_COPY_INNER)
+				def->act_vlan_prio = i;
+			if (def->act_svlan_prio == PRIO_COPY_INNER)
+				def->act_svlan_prio = i;
 			def->act_vlan_prio = i;
 			def = def->next;
 		}
@@ -786,7 +827,6 @@ priority_expand(struct filter_template *def, void *arg)
 	    def->inner_vlan_prio == NETLINK_FILTER_UNUSED
 	    && (def->act_vlan == NETLINK_FILTER_ACT_VLAN_PUSH ||
 		def->act_vlan == NETLINK_FILTER_ACT_VLAN_POP_AND_MODIFY)) {
-
 		ret = filter_template_multiplicate(def, PRIO_COUNT);
 		if (ret != PON_ADAPTER_SUCCESS) {
 			FN_ERR_RET(ret, filter_template_multiplicate, ret);
@@ -849,6 +889,9 @@ generic_expand(struct filter_template *def, void *arg)
 	def->act_vlan_prio = map_val(filter, def->act_vlan_prio);
 	def->act_vlan_proto = map_val(filter, def->act_vlan_proto);
 	def->act_vlan = map_val(filter, def->act_vlan);
+	def->act_svlan_id = map_val(filter, def->act_svlan_id);
+	def->act_svlan_prio = map_val(filter, def->act_svlan_prio);
+	def->act_svlan_proto = map_val(filter, def->act_svlan_proto);
 
 	dbg_out_ret("%d", PON_ADAPTER_SUCCESS);
 	return PON_ADAPTER_SUCCESS;
@@ -1027,7 +1070,6 @@ pon_net_ext_vlan_filters_get(struct pon_net_ext_vlan *ext_vlan,
 	/* ip_tos will be set by priority_expand function
 	   it should not be set by directly template */
 	def->ip_tos = NETLINK_FILTER_UNUSED;
-
 	ret = filter_template_expand(def,
 				     expanders,
 				     ARRAY_SIZE(expanders),
@@ -1267,8 +1309,23 @@ pon_net_find_ext_vlan_rule(const struct pon_adapter_ext_vlan_filter *f,
 			}
 
 			if (f->treatment_outer_priority != 15) {
-				if (f->treatment_outer_vid > 4095)
-					continue;
+			    if (rule->f.treatment_outer_priority == m_0_7 &&
+				f->treatment_outer_priority > 7)
+				continue;
+
+			    if (rule->f.treatment_outer_priority > 7 &&
+				rule->f.treatment_outer_priority
+				!= f->treatment_outer_priority)
+				continue;
+
+			    if (rule->f.treatment_outer_vid == VIDy) {
+				if (f->treatment_outer_vid == 4096 ||
+				    f->treatment_outer_vid == 4097)
+				    continue;
+			    } else {
+				if (f->treatment_outer_vid <= 4095)
+				    continue;
+			    }
 			}
 
 			if (dump) {

@@ -797,6 +797,8 @@ struct pon_net_context {
 	 *  - false: MCC is stopped.
 	 */
 	bool mcc_running;
+	/** Indicates whether the netifd service is currently running. */
+	bool netifd_running;
 	/** OMCC handle to support OMCI message send/receive */
 	struct pon_net_omcc_context omcc_ctx;
 	/** List of attribute structures for each Managed Entity */

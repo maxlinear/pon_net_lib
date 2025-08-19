@@ -518,6 +518,28 @@ static enum pon_adapter_errno read_pa_config(struct pon_net_context *ctx,
 	return ret;
 }
 
+static bool is_netifd_running(struct pon_net_context *ctx)
+{
+	int err;
+
+	/* Check if netifd is running by trying to call a method of the
+	 * "network" object.
+	 */
+	if (!ctx->pa_config || !ctx->pa_config->ubus_call) {
+		dbg_err("Ubus call is not available, cannot check netifd status\n");
+		return false;
+	}
+	err = ctx->pa_config->ubus_call(ctx->hl_handle, "network",
+					"get_proto_handlers", NULL, NULL, NULL,
+					PON_UBUS_TIMEOUT);
+	if (err == PON_ADAPTER_SUCCESS) {
+		dbg_msg("netifd is running\n");
+		return true;
+	}
+	dbg_msg("netifd is not running\n");
+	return false;
+}
+
 static enum pon_adapter_errno pon_net_init(char const * const *init_data,
 			  const struct pa_config *pa_config,
 			  const struct pa_eh_ops *event_handler,
@@ -607,6 +629,12 @@ static enum pon_adapter_errno pon_net_start(void *ll_handle)
 	int err = 0;
 
 	dbg_in_args("%p", ll_handle);
+
+	ctx->netifd_running = is_netifd_running(ctx);
+	if (ctx->netifd_running)
+		dbg_msg("netifd is running, using it for network configuration\n");
+	else
+		dbg_err("netifd is not running, not possible to execute network configuration\n");
 
 	ret = netlink_netdevices_clear_all(ctx->netlink);
 	if (ret != PON_ADAPTER_SUCCESS)

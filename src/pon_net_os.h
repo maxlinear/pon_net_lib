@@ -98,6 +98,32 @@ int clock_gettime(int mode, struct timespec *tv)
 #define strerror_r(errno, buf, len) \
 	strerror_s(buf, len, errno)
 
+#include <stdarg.h>
+#include <stdio.h>
+
+/* Define asprintf as it is not available for WIN32 */
+static inline int asprintf(char **strp, const char *fmt, ...)
+{
+	va_list args;
+	int size, result;
+
+	va_start(args, fmt);
+	size = vsnprintf(NULL, 0, fmt, args);
+	va_end(args);
+
+	if (size < 0)
+		return -1;
+
+	*strp = malloc(size + 1);
+	if (!*strp)
+		return -1;
+
+	va_start(args, fmt);
+	result = vsnprintf(*strp, size + 1, fmt, args);
+	va_end(args);
+
+	return result;
+}
 #endif /* WIN32 */
 
 #ifndef EOK

@@ -500,7 +500,7 @@ static enum pon_adapter_errno pptp_lct_uni_update(void *ll_handle,
 {
 	struct pon_net_context *ctx = ll_handle;
 
-	if (ctx->pa_config->ubus_call)
+	if (ctx->pa_config->ubus_call && ctx->netifd_running)
 		return pptp_lct_uni_update_ubus(ctx, me_id, state_admin);
 	return pptp_lct_uni_update_ifname(ctx, me_id, state_admin);
 }
@@ -564,7 +564,7 @@ static enum pon_adapter_errno pptp_lct_uni_destroy(void *ll_handle,
 	dbg_in_args("%p, %u", ll_handle, me_id);
 
 	/* Ignore return value as ubusd might be removed before shutdown. */
-	if (ctx->pa_config->ubus_call)
+	if (ctx->pa_config->ubus_call && ctx->netifd_running)
 		ctx->pa_config->ubus_call(ctx->hl_handle,
 					  "network.interface.lct", "down",
 					  NULL, NULL, NULL, PON_UBUS_TIMEOUT);
