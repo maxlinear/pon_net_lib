@@ -1,5 +1,12 @@
 NEXT VERSION
 
+v2.2.1 2025.08.26
+
+- PONRTSYS-14973: Add codespell config and fix spelling in code
+- PONRTSYS-14976: Fix error handling in network interface check
+  + The error returned from ubus_call is not a PON Adapter error value and
+    the return code used in FN_ERR_RET macro should match the really returned value.
+
 v2.2.0 2025.07.03
 
 - PONRTSYS-14712: Resolved issues with OMCI rules definitions in the OMCI rules list

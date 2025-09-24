@@ -243,7 +243,7 @@ static int network_interface_pair_walk_cmp(const void *a, const void *b,
 
 /** The configuration state of the MAC Bridge Port Filter Preassign Table */
 struct configuration {
-	/** Configured vlaues */
+	/** Configured values */
 	struct pa_mac_bp_filter_preassign_table_upd_data cfg;
 	/** VLAN forwarding data */
 	struct pon_net_vlan_forwarding fwd;

@@ -667,56 +667,56 @@ ip_host_platform_update(void *ll_handle, const struct pon_net_ip_host *ip_host,
 	err = ctx->pa_config->set(ctx->hl_handle, "network", cfg_name,
 				  "clientid", update_data->ont_id, false);
 	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, set, PON_ADAPTER_ERROR);
+		FN_ERR_RET(err, set, err);
 		return err;
 	}
 
 	err = uci_set_ipv4(ctx, cfg_name, "ipaddr", &update_data->ip_address,
 			   false);
 	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, uci_set_ipv4, PON_ADAPTER_ERROR);
+		FN_ERR_RET(err, uci_set_ipv4, err);
 		return err;
 	}
 
 	err = uci_set_ipv4(ctx, cfg_name, "netmask", &update_data->mask, false);
 	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, uci_set_ipv4, PON_ADAPTER_ERROR);
+		FN_ERR_RET(err, uci_set_ipv4, err);
 		return err;
 	}
 
 	err = uci_set_ipv4(ctx, cfg_name, "gateway", &update_data->gateway,
 			   false);
 	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, uci_set_ipv4, PON_ADAPTER_ERROR);
+		FN_ERR_RET(err, uci_set_ipv4, err);
 		return err;
 	}
 
 	err = uci_set_ipv4(ctx, cfg_name, "dns", &update_data->primary_dns,
 			   false);
 	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, uci_set_ipv4, PON_ADAPTER_ERROR);
+		FN_ERR_RET(err, uci_set_ipv4, err);
 		return err;
 	}
 
 	err = uci_set_ipv4(ctx, cfg_name, "dns", &update_data->secondary_dns,
 			   true);
 	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, uci_set_ipv4, PON_ADAPTER_ERROR);
+		FN_ERR_RET(err, uci_set_ipv4, err);
 		return err;
 	}
 
 	err = ctx->pa_config->set(ctx->hl_handle, "network", cfg_name,
 				  "proto", proto, false);
 	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, set, PON_ADAPTER_ERROR);
+		FN_ERR_RET(err, set, err);
 		return err;
 	}
 
-	err = ctx->pa_config->ubus_call(ctx->hl_handle, "network", "reload",
-					NULL, NULL, NULL, PON_UBUS_TIMEOUT);
-	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, ubus_call, err);
-		return err;
+	error = ctx->pa_config->ubus_call(ctx->hl_handle, "network", "reload",
+					  NULL, NULL, NULL, PON_UBUS_TIMEOUT);
+	if (error) {
+		FN_ERR_RET(error, ubus_call, PON_ADAPTER_ERROR);
+		return PON_ADAPTER_ERROR;
 	}
 
 	if (update_data->ip_options > 1)
@@ -726,15 +726,15 @@ ip_host_platform_update(void *ll_handle, const struct pon_net_ip_host *ip_host,
 
 	error = asprintf(&path, "%s.%s", "network.interface", cfg_name);
 	if (error < 0) {
-		FN_ERR_RET(error, asprintf, error);
+		FN_ERR_RET(error, asprintf, PON_ADAPTER_ERROR);
 		return PON_ADAPTER_ERROR;
 	}
-	err = ctx->pa_config->ubus_call(ctx->hl_handle, path, method,
-					NULL, NULL, NULL, PON_UBUS_TIMEOUT);
+	error = ctx->pa_config->ubus_call(ctx->hl_handle, path, method, NULL,
+					  NULL, NULL, PON_UBUS_TIMEOUT);
 	free(path);
-	if (err != PON_ADAPTER_SUCCESS) {
-		FN_ERR_RET(err, ubus_call, err);
-		return err;
+	if (error) {
+		FN_ERR_RET(error, ubus_call, PON_ADAPTER_ERROR);
+		return PON_ADAPTER_ERROR;
 	}
 
 	dbg_out_ret("%d", PON_ADAPTER_SUCCESS);

@@ -88,7 +88,7 @@ pon_net_vlan_flow_clear_all(struct pon_net_context *ctx,
  *  \param[in]	tci_list	VLAN ids list
  *  \param[in]	tci_list_len	VLAN ids count
  *  \param[in]	tci_mask	VLAN TCI mask for all IDs
- *  \param[in]	untagged	Untagged frames should get forwared
+ *  \param[in]	untagged	Untagged frames should get forwarded
  */
 enum pon_adapter_errno
 pon_net_vlan_forwarding_update(struct pon_net_context *ctx,

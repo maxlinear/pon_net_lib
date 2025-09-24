@@ -97,7 +97,7 @@ static void bport_vlan_del(struct pon_net_netlink *nl_ctx,
 	dbg_out();
 }
 
-/* Apply vlan entry to the system, by issueing ctx call */
+/* Apply vlan entry to the system, by issuing ctx call */
 static enum pon_adapter_errno vlan_entry_apply(const struct vlan_entry *entry,
 					       struct pon_net_context *ctx,
 					       bool apply_to_br)
@@ -128,7 +128,7 @@ static enum pon_adapter_errno vlan_entry_apply(const struct vlan_entry *entry,
 	return PON_ADAPTER_SUCCESS;
 }
 
-/* Remove vlan entry from the system, by issueing ctx call */
+/* Remove vlan entry from the system, by issuing ctx call */
 static enum pon_adapter_errno vlan_entry_clear(const struct vlan_entry *entry,
 					       struct pon_net_context *ctx,
 					       bool apply_to_br)
@@ -248,7 +248,7 @@ static bool unmark_one(struct pon_net_vlan_aware_bridging *vab, uint16_t me_id,
 	return false;
 }
 
-/* Count number of occurences of pair (vlan_id, br_ifname) in the vab */
+/* Count number of occurrences of pair (vlan_id, br_ifname) in the vab */
 static uint32_t
 count_bridge_vid_entries(struct pon_net_vlan_aware_bridging *vab,
 			 uint16_t vlan_id,

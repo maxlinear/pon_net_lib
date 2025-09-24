@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_REVISION($Revision: 0.1 $)
 
-AC_INIT([PON_NET_LIB],[2.2.0],[],[pon_net_lib])
+AC_INIT([PON_NET_LIB],[2.2.1],[],[pon_net_lib])
 AC_CONFIG_SRCDIR(src/Makefile.am)
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -247,7 +247,7 @@ AC_ARG_ENABLE(simulator,
 
 # Check for git and a git repo.
 if test -e "$srcdir/.git"; then
-        # Hash of lastest tag
+        # Hash of latest tag
         latest_tag=`git -C "$srcdir" describe --tags --abbrev=0`
 
         # Number of commits until latest tag

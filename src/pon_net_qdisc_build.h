@@ -25,7 +25,7 @@
 /**
  * \file
  * The OMCI defines Priority Queue ME and Traffic Scheduler ME. These two
- * managed entities are used together to implement hierachical scheduling.
+ * managed entities are used together to implement hierarchical scheduling.
  * The scheduler hierarchy is implemented using TC qdiscs. The hierarchy
  * defined by OMCI will be represented by the equivalent TC qdisc hierarchy.
  * We use tc-drr and tc-prio to represent respectively WRR and SP scheduling.

@@ -19,7 +19,7 @@
 /** \defgroup PON_NET_TC_FILTER TC filter storage functions
 
     Contains the definitions of PON Net TC filter structure
-    and a containter for items of this structure
+    and a container for items of this structure
 
     To create TC filters a \ref netlink_filter structure is used. This structure
     is quite big and contains many fields. To delete a TC filter we only

@@ -77,7 +77,7 @@
  *
  * The returned priorities in the `prio` will be sorted.
  *
- * Freeing is analoguous
+ * Freeing is analogous
  *
  *     pon_net_dev_db_put(ctx->db, ifname, PON_NET_PRIO_VLAN_FILTERING, prio,
  *                        ARRAY_SIZE(prio));

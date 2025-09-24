@@ -609,7 +609,7 @@ qdiscs_diff_apply_with_reassigning_gems(struct pon_net_qdiscs *new,
 	 *
 	 * The tc filters are added to clsact qdisc and not to the qdiscs
 	 * that we are adding/deleting here. So technically there should be
-	 * possiblity to change qdisc tree independently from the
+	 * possibility to change qdisc tree independently from the
 	 * filters configured on clsact.
 	 *
 	 * But the driver does not allow us to modify qdisc configuration when

@@ -492,7 +492,7 @@ def print_rule(args):
 
 def main():
     parser = argparse.ArgumentParser(epilog=EXAMPLE_USAGE,
-                                     description="A helper script to generate commands useful when debuggin Ext. Vlan",
+                                     description="A helper script to generate commands useful when debugging Ext. Vlan",
                                      formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument('--file', help="A file containing omci extvlan strings")

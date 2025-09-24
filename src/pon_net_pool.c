@@ -225,7 +225,7 @@ enum pon_adapter_errno pon_net_pool_put_many(struct pon_net_pool *pool,
 
 	for (i = 0; i < count; ++i) {
 		/* We iterate in reverse order, because if values array
-		 * were previosly allocated with pon_net_pool_get_many(),
+		 * were previously allocated with pon_net_pool_get_many(),
 		 * we have a some chance to avoid adding entries to
 		 * "freed" list */
 		uint32_t index = values[count - i - 1] - pool->offset;

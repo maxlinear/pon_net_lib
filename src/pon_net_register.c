@@ -532,7 +532,7 @@ static bool is_netifd_running(struct pon_net_context *ctx)
 	err = ctx->pa_config->ubus_call(ctx->hl_handle, "network",
 					"get_proto_handlers", NULL, NULL, NULL,
 					PON_UBUS_TIMEOUT);
-	if (err == PON_ADAPTER_SUCCESS) {
+	if (!err) {
 		dbg_msg("netifd is running\n");
 		return true;
 	}

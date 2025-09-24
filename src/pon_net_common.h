@@ -275,7 +275,7 @@ do { \
  *     situation by creating additional child traffic schedulers, thus one
  *     Traffic Scheduler in OMCI can be represented as multiple qdiscs in TC.
  *
- * The above bit tranformations guarantee unique handle within a T-CONT
+ * The above bit transformations guarantee unique handle within a T-CONT
  * (T-CONT can have only Traffic Schedulers from the same slot or from no slot
  *  0xFF)
  */
@@ -663,9 +663,9 @@ struct pon_net_bridge_port_config {
 	bool connected;
 };
 
-/** Structure represeting VLAN forwarding configuration parameters */
+/** Structure representing VLAN forwarding configuration parameters */
 struct pon_net_vlan_forwarding {
-	/** Arrary of VLAN TCIs */
+	/** Array of VLAN TCIs */
 	uint16_t tci_list[MAX_TCIS];
 	/** Number of items in 'tci_list' array */
 	uint8_t tci_list_len;
@@ -694,7 +694,7 @@ struct pon_net_ip_host {
 	bool is_up;
 	/** Filter handles */
 	uint32_t handles[7];
-	/** Filter prioritiess */
+	/** Filter priorities */
 	uint32_t prios[7];
 	/* queue mapping priority */
 	uint32_t queue_prio;
@@ -1234,7 +1234,7 @@ enum pon_adapter_errno pon_net_queue_unassign(struct pon_net_context *ctx,
 					      uint16_t me_id);
 
 /**
- * Unassign GEMs from Managed Entity's queues
+ * Update GEMs in Managed Entity's queues
  *
  * \param[in] ctx		PON NET context pointer
  * \param[in] class_id		Managed Entity Class ID

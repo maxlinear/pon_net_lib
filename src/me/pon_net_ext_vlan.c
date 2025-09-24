@@ -81,10 +81,10 @@
  *
  *     {15, 4096, 0, 15, 4096, 0, 0, 0, 15, 0, 0, 5, 1000, 6}
  *
- * First step when adding a rule is to match it agains the \ref omci_rules table
- * to determine its major and minor number. The rule in this example will match
- * to the Rule 0.5, which is "Insert one full tag X with fixed prio
- * (default flow)". The major number is 0 and minor number is 5.
+ * First step when adding a rule is to match it against the \ref omci_rules
+ * table to determine its major and minor number. The rule in this example
+ * will match to the Rule 0.5, which is "Insert one full tag X with fixed
+ * prio (default flow)". The major number is 0 and minor number is 5.
  *
  * Next step is to generate TC filters. Having a major and minor number, the
  * function \ref pon_net_ext_vlan_filters_get() is called and it returns an
