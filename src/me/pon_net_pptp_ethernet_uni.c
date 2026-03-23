@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (c) 2020 - 2023 MaxLinear, Inc.
+ * Copyright (c) 2020 - 2026 MaxLinear, Inc.
  * Copyright (c) 2018 - 2020 Intel Corporation
  *
  * For licensing information, see the file 'LICENSE' in the root folder of
@@ -509,14 +509,19 @@ static enum pon_adapter_errno pptp_eth_uni_unlock(void *ll_handle,
 	return ret;
 }
 
-static bool pptp_eth_uni_lan_is_available(void *ll_handle,
-					  uint16_t me_id)
+static enum pon_adapter_errno pptp_eth_uni_lan_is_available(void *ll_handle,
+						uint16_t me_id, bool *available)
 {
 	dbg_in_args("%p, %u", ll_handle, me_id);
 
+	if (!available) {
+		dbg_out_ret("%d", PON_ADAPTER_ERR_INVALID_VAL);
+		return PON_ADAPTER_ERR_INVALID_VAL;
+	}
+	*available = true;
 	/* Check to the port will be added later */
-	dbg_out_ret("%d", true);
-	return true;
+	dbg_out_ret("%d", PON_ADAPTER_SUCCESS);
+	return PON_ADAPTER_SUCCESS;
 }
 
 static enum pon_adapter_errno pptp_eth_uni_conf_ind_get(void *ll_handle,

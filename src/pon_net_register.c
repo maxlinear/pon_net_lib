@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (c) 2020 - 2024 MaxLinear, Inc.
+ * Copyright (c) 2020 - 2026 MaxLinear, Inc.
  * Copyright (c) 2017 - 2020 Intel Corporation
  *
  * For licensing information, see the file 'LICENSE' in the root folder of
@@ -777,14 +777,20 @@ static enum pon_adapter_errno pon_net_shutdown(void *ll_handle)
 	return PON_ADAPTER_SUCCESS;
 }
 
-static unsigned int get_lanports(void *ll_handle)
+static enum pon_adapter_errno get_lanports(void *ll_handle,
+					   uint32_t *lanports_num)
 {
 	struct pon_net_context *ctx = ll_handle;
 
 	dbg_in_args("%p", ll_handle);
-
 	dbg_out_ret("%u", ctx->cfg.max_ports);
-	return ctx->cfg.max_ports;
+
+	if (!lanports_num)
+		return PON_ADAPTER_ERR_PTR_INVALID;
+
+	*lanports_num = ctx->cfg.max_ports;
+
+	return PON_ADAPTER_SUCCESS;
 }
 
 static const struct pa_system_cap_ops pon_net_sys_cap_ops = {

@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (c) 2020 MaxLinear, Inc.
+ * Copyright (c) 2020 - 2026 MaxLinear, Inc.
  * Copyright (c) 2017 Intel Corporation
  *
  * For licensing information, see the file 'LICENSE' in the root folder of
@@ -49,17 +49,16 @@ static enum pon_adapter_errno get(
 	return PON_ADAPTER_SUCCESS;
 }
 
-static void free_table(
-	void *ll_handle,
-	uint16_t me_id,
-	uint16_t bridge_me_id,
-	unsigned int *entry_num,
-	struct pa_mac_bp_bridge_table_data_entry **entries)
+static enum pon_adapter_errno free_table(void *ll_handle, uint16_t me_id,
+			uint16_t bridge_me_id,
+			unsigned int *entry_num,
+			struct pa_mac_bp_bridge_table_data_entry **entries)
 {
 	dbg_in_args("%p, %u, %u, %p, %p", ll_handle, me_id, bridge_me_id,
 		    entry_num, entries);
-	/* TODO: Implement this. For now it is here just to avoid SEGFAULTs */
 	dbg_out();
+
+	return PON_ADAPTER_SUCCESS;
 }
 
 const struct pa_mac_bp_bridge_table_data_ops mac_bp_bridge_table_data_ops = {

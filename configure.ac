@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_REVISION($Revision: 0.1 $)
 
-AC_INIT([PON_NET_LIB],[2.2.1],[],[pon_net_lib])
+AC_INIT([PON_NET_LIB],[2.3.0],[],[pon_net_lib])
 AC_CONFIG_SRCDIR(src/Makefile.am)
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -255,10 +255,13 @@ if test -e "$srcdir/.git"; then
                 EXTRA_VERSION=`git -C "$srcdir" rev-list HEAD "^$latest_tag" --count`
         fi
 
-        # Check if repo is dirty
+        # Add the git commit hash or dirty suffix
         if test `git -C "$srcdir" diff-index -p HEAD | wc -l` -gt 0 ; then
-                EXTRA_VERSION="$EXTRA_VERSION-dirty"
+                EXTRA_SUFFIX="dirty"
+        else
+                EXTRA_SUFFIX="g`git -C "$srcdir" rev-parse --short=7 HEAD`"
         fi
+        EXTRA_VERSION="$EXTRA_VERSION-$EXTRA_SUFFIX"
 fi
 
 if test -n "$EXTRA_VERSION"; then

@@ -1,5 +1,9 @@
 NEXT VERSION
 
+v2.3.0 2026.01.20
+
+- PONRTSYS-15042: Unified ops-functions return types
+
 v2.2.1 2025.08.26
 
 - PONRTSYS-14973: Add codespell config and fix spelling in code
